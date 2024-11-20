@@ -30,7 +30,7 @@ const DropdownUser = ({ user }) => {
 
                 <span>
                     <Image
-                        class="w-8 h-8 rounded-full"
+                        className="w-8 h-8 rounded-full"
                         width={8}
                         height={8}
                         unoptimized={true}

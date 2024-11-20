@@ -17,12 +17,6 @@ const DefaultLayout = (props) => {
     useEffect(() => {
         (async () => {
             try {
-                fetch(`${process.env.NEXT_PUBLIC_SERVER_ENDPOINT}admin`, {
-                    method: "GET",
-                    credentials: "include"
-                }).then(response => response.json())
-                  .then(data => console.log(data));
-                
                 const { data } = await axios.get('admin');
 
                 if (data.is_user === true) {
