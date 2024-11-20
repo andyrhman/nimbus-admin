@@ -12,7 +12,7 @@ import Link from "next/link.js";
 import { toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const Provinsi = () => {
+const CategoryWisata = () => {
     const pageTitle = `Category Wisata | ${process.env.siteTitle}`;
     const [categoryWisata, setCategoryWisata] = useState([]);
 
@@ -194,4 +194,4 @@ const Provinsi = () => {
     );
 };
 
-export default Provinsi;
+export default CategoryWisata;
