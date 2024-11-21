@@ -1,17 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import Layout from '../../components/Layout';
-import SEO from '../../components/SEO';
-import DefaultLayout from '../../components/Layouts/DefaultLayout';
-import UpdateError from '../../components/Alerts/UpdateError';
-import ButtonSpinner from '../../components/common/ButtonSpinner';
-import Link from 'next/link';
-import Image from 'next/image.js';
-import { useRouter } from 'next/router';
-import { toast, Slide } from 'react-toastify';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
+import { Slide, toast } from 'react-toastify';
+import axios from "axios";
+import DefaultLayout from "../../../components/Layouts/DefaultLayout";
+import Layout from '../../../components/Layout';
+import SEO from "../../../components/SEO";
+import Image from "next/image";
+import Link from "next/link";
+import UpdateError from "../../../components/Alerts/UpdateError";
+import * as sanitizeHtml from 'sanitize-html';
 import 'react-toastify/dist/ReactToastify.css';
+import ButtonSpinner from "../../../components/common/ButtonSpinner";
+import SelectProvinsi from "@/components/SelectGroup/SelectProvinsi.js";
+import SelectCategoryWisata from "@/components/SelectGroup/SelectCategory.js";
 
-const CreateTempatWisata = () => {
+const EditUser = () => {
     const [nama, setNama] = useState('');
     const [deskripsi, setDeskripsi] = useState('');
     const [thumbnail, setThumbnail] = useState('https://storage.googleapis.com/nimbus-storage/tempat_wisata_thumbnails/d1b32fb1-1443-4bf9-99ca-f563aa0db19e_FRdq8ZbPetwNDRV9R3hYpP.jpg');
@@ -28,9 +31,45 @@ const CreateTempatWisata = () => {
     const [provinsi, setProvinsi] = useState([]);
     const [categoryWisata, setCategoryWisata] = useState([]);
 
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { id } = router.query;
+
+    useEffect(() => {
+        if (id) {
+            (
+                async () => {
+                    try {
+                        const { data: p } = await axios.get('user/provinsi');
+                        setProvinsi(p)
+
+                        const { data: cw } = await axios.get('user/category-wisata');
+                        setCategoryWisata(cw)
+
+                        const { data } = await axios.get(`admin/tempat-wisata/${id}`);
+                        setNama(data.nama);
+                        setDeskripsi(data.deskripsi);
+                        setThumbnail(data.thumbnail);
+                        setAlamat(data.alamat);
+                        setWebsite(data.website);
+                        setGoogleLink(data.google_link);
+                        setLongitude(parseFloat(data.longitude));
+                        setLatitude(parseFloat(data.latitude));
+                        setReviewTotal(data.review_total);
+                        setAverageRating(data.average_rating);
+                        setProvinsiId(data.provinsi_id);
+                        setCategoryWisataId(data.categoryWisata_id);
+
+                    } catch (error) {
+                        if (error.response && [401, 403].includes(error.response.status)) {
+                            router.push('/login');
+                        }
+                    }
+                }
+            )();
+        }
+    }, [router, id]);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -40,26 +79,24 @@ const CreateTempatWisata = () => {
     };
 
     useEffect(() => {
-
-        (
-            async () => {
-                try {
-                    const { data: prov } = await axios.get('user/provinsi');
-                    setProvinsi(prov);
-
-                    const { data: cw } = await axios.get('user/category-wisata');
-                    setCategoryWisata(cw);
-                } catch (error) {
-                    if (error.response && [401, 403].includes(error.response.status)) {
-                        router.push('/login');
-                    }
-                }
-            }
-        )()
-
+        const updateBerhasil = sessionStorage.getItem('updateBerhasil');
+        if (updateBerhasil === '1') {
+            toast.success('Berhasil Diupdate', {
+                position: "top-center",
+                autoClose: 2000,
+                hideProgressBar: true,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "colored",
+                transition: Slide
+            });
+            sessionStorage.removeItem('updateBerhasil');
+        }
     }, []);
 
-    const submit = async (e) => {
+    const updatePengguna = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
@@ -79,28 +116,14 @@ const CreateTempatWisata = () => {
             formData.append("provinsi_id", provinsi_id);
             formData.append("categoryWisata_id", categoryWisata_id);
 
-            const { data } = await axios.post('admin/tempat-wisata', formData, {
+            await axios.put(`admin/tempat-wisata/${id}`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
 
-            if (data) {
-                toast.success('Tempat Wisata berhasil dibuat!', {
-                    position: "top-center",
-                    autoClose: 2000,
-                    hideProgressBar: true,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-                    transition: Slide
-                });
-                router.push('/tempat-wisata')
-            } else {
-                setError('Terjadi kesalahan, mohon ulang lagi sebentar.');
-            }
+            sessionStorage.setItem('updateBerhasil', '1');
+            window.location.reload();
         } catch (error) {
             console.error(error.response);
             if (error.response && error.response.data && error.response.data.message) {
@@ -111,7 +134,9 @@ const CreateTempatWisata = () => {
             setLoading(false);
         }
     }
-    const pageTitle = `Tambah Tempat Wisata | ${process.env.siteTitle}`;
+
+    const pageTitle = `Edit ${sanitizeHtml(nama)}| ${process.env.siteTitle}`;
+
     return (
         <Layout>
             <SEO title={pageTitle} />
@@ -123,15 +148,12 @@ const CreateTempatWisata = () => {
                         </svg>
                         <span>Kembali</span>
                     </Link>
-                    <h2 className="text-title-md2 font-semibold text-black dark:text-white">
-                        Tambah Tempat Wisata
-                    </h2>
                 </div>
                 <div className="flex flex-col gap-10">
                     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-16 dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-20">
                         <div className="rounded-sm bg-white">
                             <div className="flex flex-col gap-5.5 p-6.5">
-                                <form onSubmit={submit}>
+                                <form>
                                     <div className="relative flex justify-center items-center">
                                         <div className="relative flex items-center justify-center drop-shadow-2">
                                             {thumbnail &&
@@ -180,15 +202,15 @@ const CreateTempatWisata = () => {
                                             </label>
                                         </div>
                                     </div>
-
                                     <UpdateError error={error} />
                                     <div>
                                         <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                                            Nama
+                                            Nama tempat wisata
                                         </label>
                                         <input
+                                            value={nama}
                                             onChange={(e) => setNama(e.target.value)}
-                                            placeholder='Masukkan Nama Tempat Wisata'
+                                            maxLength={100}
                                             type="text"
                                             className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                                         />
@@ -198,12 +220,11 @@ const CreateTempatWisata = () => {
                                             Deskripsi
                                         </label>
                                         <textarea
-                                            className="w-full rounded border border-stroke bg-gray py-3 pl-6 pr-4.5 text-black focus:border-primary focus-visible:outline-none dark:border-strokedark dark:bg-meta-4 dark:text-white dark:focus:border-primary"
-                                            name="deskripsi"
-                                            id="deskripsi"
-                                            rows={6}
-                                            placeholder="Masukkan deskripsi tempat wisata di sini"
+                                            defaultValue={deskripsi}
+                                            maxLength={250}
                                             onChange={(e) => setDeskripsi(e.target.value)}
+                                            rows={6}
+                                            className="w-full rounded-lg border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                                         ></textarea>
                                     </div>
                                     <div>
@@ -211,6 +232,7 @@ const CreateTempatWisata = () => {
                                             Alamat
                                         </label>
                                         <input
+                                            value={alamat}
                                             onChange={(e) => setAlamat(e.target.value)}
                                             placeholder='Masukkan Alamat'
                                             type="text"
@@ -222,6 +244,7 @@ const CreateTempatWisata = () => {
                                             Website
                                         </label>
                                         <input
+                                            value={website}
                                             onChange={(e) => setWebsite(e.target.value)}
                                             placeholder='Masukkan Website'
                                             type="text"
@@ -233,6 +256,7 @@ const CreateTempatWisata = () => {
                                             Google Link
                                         </label>
                                         <input
+                                            value={google_link}
                                             onChange={(e) => setGoogleLink(e.target.value)}
                                             placeholder='Masukkan Google Link'
                                             type="text"
@@ -244,6 +268,7 @@ const CreateTempatWisata = () => {
                                             Longitude
                                         </label>
                                         <input
+                                            value={longitude}
                                             onChange={(e) => setLongitude(e.target.value)}
                                             placeholder='Masukkan Longitude'
                                             type="text"
@@ -255,6 +280,7 @@ const CreateTempatWisata = () => {
                                             Latitude
                                         </label>
                                         <input
+                                            value={latitude}
                                             onChange={(e) => setLatitude(e.target.value)}
                                             placeholder='Masukkan Latitude'
                                             type="text"
@@ -266,6 +292,7 @@ const CreateTempatWisata = () => {
                                             Review Total
                                         </label>
                                         <input
+                                            value={review_total}
                                             onChange={(e) => setReviewTotal(e.target.value)}
                                             placeholder='Masukkan Review Total'
                                             type="text"
@@ -277,6 +304,7 @@ const CreateTempatWisata = () => {
                                             Average Rating
                                         </label>
                                         <input
+                                            value={average_rating}
                                             onChange={(e) => setAverageRating(e.target.value)}
                                             placeholder='Masukkan Average Rating'
                                             type="text"
@@ -284,104 +312,19 @@ const CreateTempatWisata = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                                            Provinsi
-                                        </label>
-
-                                        <div className="relative z-20 bg-white dark:bg-form-input">
-                                            <span className="absolute left-4 top-1/2 z-30 -translate-y-1/2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-geo-alt-fill" viewBox="0 0 16 16">
-                                                    <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
-                                                </svg>
-                                            </span>
-
-                                            <select
-                                                onChange={(e) => setProvinsiId(e.target.value)}
-                                                className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent px-12 py-3 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input text-black"
-                                                value={`${provinsi_id}`}
-                                            >
-                                                <option value="">Pilih Provinsi</option>
-                                                {provinsi.map((p) => (
-                                                    <option key={p.id} value={p.id} className="text-body dark:text-bodydark">
-                                                        {p.nama}
-                                                    </option>
-                                                ))}
-                                            </select>
-
-                                            <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2">
-                                                <svg
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <g opacity="0.8">
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            clipRule="evenodd"
-                                                            d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                                                            fill="#637381"
-                                                        ></path>
-                                                    </g>
-                                                </svg>
-                                            </span>
-                                        </div>
+                                        <SelectProvinsi nama_provinsi={provinsi_id} provinsi={provinsi} onChange={(value) => setProvinsiId(value)} />
                                     </div>
                                     <div>
-                                        <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                                            Category Wisata
-                                        </label>
-
-                                        <div className="relative z-20 bg-white dark:bg-form-input">
-                                            <span className="absolute left-4 top-1/2 z-30 -translate-y-1/2">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-tags" viewBox="0 0 16 16">
-                                                    <path d="M3 2v4.586l7 7L14.586 9l-7-7zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586z" />
-                                                    <path d="M5.5 5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1m0 1a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M1 7.086a1 1 0 0 0 .293.707L8.75 15.25l-.043.043a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 0 7.586V3a1 1 0 0 1 1-1z" />
-                                                </svg>
-                                            </span>
-
-                                            <select
-                                                onChange={(e) => setCategoryWisataId(e.target.value)}
-                                                className="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent px-12 py-3 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input text-black"
-                                                value={`${categoryWisata_id}`}
-                                            >
-                                                <option value="">Pilih Category Wisata</option>
-                                                {categoryWisata.map((c) => (
-                                                    <option key={c.id} value={c.id} className="text-body dark:text-bodydark">
-                                                        {c.nama}
-                                                    </option>
-                                                ))}
-                                            </select>
-
-                                            <span className="absolute right-4 top-1/2 z-10 -translate-y-1/2">
-                                                <svg
-                                                    width="24"
-                                                    height="24"
-                                                    viewBox="0 0 24 24"
-                                                    fill="none"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                >
-                                                    <g opacity="0.8">
-                                                        <path
-                                                            fillRule="evenodd"
-                                                            clipRule="evenodd"
-                                                            d="M5.29289 8.29289C5.68342 7.90237 6.31658 7.90237 6.70711 8.29289L12 13.5858L17.2929 8.29289C17.6834 7.90237 18.3166 7.90237 18.7071 8.29289C19.0976 8.68342 19.0976 9.31658 18.7071 9.70711L12.7071 15.7071C12.3166 16.0976 11.6834 16.0976 11.2929 15.7071L5.29289 9.70711C4.90237 9.31658 4.90237 8.68342 5.29289 8.29289Z"
-                                                            fill="#637381"
-                                                        ></path>
-                                                    </g>
-                                                </svg>
-                                            </span>
-                                        </div>
+                                        <SelectCategoryWisata nama_category={categoryWisata_id} category={categoryWisata} onChange={(value) => setCategoryWisataId(value)} />
                                     </div>
                                     <br />
-                                    <button
-                                        type='submit'
-                                        className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-4 text-center font-medium text-white hover:bg-opacity-90 w-full lg:w-full xl:w-full"
-                                    >
-                                        {loading ? <ButtonSpinner /> : "Terapkan"}
-                                    </button>
                                 </form>
+                                <button
+                                    onClick={updatePengguna}
+                                    className="inline-flex items-center justify-center rounded-md bg-primary px-10 py-4 text-center font-medium text-white hover:bg-opacity-90 w-full lg:w-full xl:w-full"
+                                >
+                                    {loading ? <ButtonSpinner /> : "Update"}
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -391,4 +334,4 @@ const CreateTempatWisata = () => {
     );
 };
 
-export default CreateTempatWisata;
+export default EditUser;

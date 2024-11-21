@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 
-const SelectCategoryWisata = ({ nama_provinsi, provinsi, onChange }) => {
+const SelectProvinsi = ({ nama_provinsi, provinsi, onChange }) => {
     const [selectedOption, setSelectedOption] = useState("");
 
     useEffect(() => {
@@ -24,14 +24,13 @@ const SelectCategoryWisata = ({ nama_provinsi, provinsi, onChange }) => {
     return (
         <div>
             <label className="mb-3 block text-sm font-medium text-black dark:text-white">
-                Pilih Tag
+                Pilih Provinsi
             </label>
 
             <div className="relative z-20 bg-white dark:bg-form-input">
                 <span className="absolute left-4 top-1/2 z-30 -translate-y-1/2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-tags" viewBox="0 0 16 16">
-                        <path d="M3 2v4.586l7 7L14.586 9l-7-7zM2 2a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293l7 7a1 1 0 0 1 0 1.414l-4.586 4.586a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 2 6.586z" />
-                        <path d="M5.5 5a.5.5 0 1 1 0-1 .5.5 0 0 1 0 1m0 1a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3M1 7.086a1 1 0 0 0 .293.707L8.75 15.25l-.043.043a1 1 0 0 1-1.414 0l-7-7A1 1 0 0 1 0 7.586V3a1 1 0 0 1 1-1z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+                        <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
                     </svg>
                 </span>
 
@@ -73,4 +72,4 @@ const SelectCategoryWisata = ({ nama_provinsi, provinsi, onChange }) => {
     );
 };
 
-export default SelectCategoryWisata;
+export default SelectProvinsi;
