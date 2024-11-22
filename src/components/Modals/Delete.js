@@ -2,8 +2,9 @@
 
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/react'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import SpinnerSmall from '../common/SpinnerSmall.js'
 
-const DeleteNotification = ({ open, handleOpenDelete, handleConfirmDelete }) => {
+const DeleteNotification = ({ open, handleOpenDelete, handleConfirmDelete, loading = "Hapus" }) => {
     return (
         <Dialog open={open} onClose={handleOpenDelete} className="relative z-10">
             <DialogBackdrop
@@ -41,7 +42,7 @@ const DeleteNotification = ({ open, handleOpenDelete, handleConfirmDelete }) => 
                                 onClick={handleConfirmDelete}
                                 className="inline-flex w-full justify-center rounded-md bg-red px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto"
                             >
-                                Hapus
+                                {loading ? <SpinnerSmall /> : "Hapus"}
                             </button>
                             <button
                                 type="button"

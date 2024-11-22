@@ -18,6 +18,7 @@ const CategoryWisata = () => {
 
     const [page, setPage] = useState(0);
     const [perPage, setPerPage] = useState(10);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -60,6 +61,8 @@ const CategoryWisata = () => {
     const handleOpenDialog = () => setOpenDialog(!openDialog);
 
     const handleConfirmDelete = async () => {
+        setLoading(true);
+
         try {
             await axios.delete(`admin/category-wisata/${categoryWisataId}`);
             setCategoryWisata(categoryWisata.filter((cw) => cw.id !== categoryWisataId));
@@ -70,6 +73,8 @@ const CategoryWisata = () => {
             if (error.response && [401, 403].includes(error.response.status)) {
                 router.push('/category-wisata');
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -83,7 +88,7 @@ const CategoryWisata = () => {
             <SEO title={pageTitle} />
             <DefaultLayout>
                 <Breadcrumb pageName="Category Wisata" />
-                <DeleteNotification open={openDialog} handleOpenDelete={handleOpenDialog} handleConfirmDelete={handleConfirmDelete} />
+                <DeleteNotification open={openDialog} handleOpenDelete={handleOpenDialog} handleConfirmDelete={handleConfirmDelete} loading={loading} />
                 <div className="flex flex-col gap-10">
                     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
                         <div className="flex items-center justify-between mb-3">

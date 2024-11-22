@@ -49,7 +49,7 @@ const Header = ({ sidebarOpen, setSidebarOpen }) => {
                         <Image
                             width={32}
                             height={32}
-                            src={"/images/logo/nimbus.png"}
+                            src={"/images/logo/nimbus-dark.png"}
                             alt="Logo"
                         />
                     </Link>

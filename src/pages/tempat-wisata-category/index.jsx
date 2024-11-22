@@ -8,10 +8,11 @@ import SEO from "../../components/SEO";
 import DeleteNotification from "../../components/Modals/Delete";
 import Image from "next/image";
 import Link from "next/link.js";
+import SelectTabCategory from "@/components/SelectTab/SelectTabCategory.js";
 import { toast, Slide } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const TempatWisata = () => {
+const TempatWisataProvinsi = () => {
     const pageTitle = `Tempat Wisata | ${process.env.siteTitle}`;
     const [tempatWisata, setTempatWisata] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const TempatWisata = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
+    const [selectedCategoryWisata, setSelectedCategoryWisata] = useState('Pantai');
     const router = useRouter();
 
     useEffect(() => {
@@ -46,17 +48,18 @@ const TempatWisata = () => {
             setError(null);
 
             try {
-                const { data } = await axios.get('user/tempat-wisata', {
+                const { data } = await axios.get(`user/tempat-wisata/category/${selectedCategoryWisata}`, {
                     params: { search: searchTerm, page },
                 });
 
-                setTempatWisata(data);
-                setHasMore(data.length === 20);
+                setTempatWisata(data.data);
+                setHasMore(data.data.length === 10);
             } catch (err) {
                 if (err.response && [401, 403].includes(err.response.status)) {
                     router.push('/login');
                 } else {
                     setError('Failed to fetch data. Please try again.');
+                    console.log(err)
                 }
             } finally {
                 setLoading(false);
@@ -64,7 +67,7 @@ const TempatWisata = () => {
         };
 
         fetchTempatWisata();
-    }, [searchTerm, page, router]);
+    }, [searchTerm, page, router, selectedCategoryWisata]);
 
     const handleSearch = (value) => {
         setSearchTerm(value);
@@ -107,6 +110,9 @@ const TempatWisata = () => {
             <SEO title={pageTitle} />
             <DefaultLayout>
                 <Breadcrumb pageName="Tempat Wisata" />
+
+                <SelectTabCategory onSelectCategoryWisata={setSelectedCategoryWisata} />
+
                 <DeleteNotification open={openDialog} handleOpenDelete={handleOpenDialog} handleConfirmDelete={handleConfirmDelete} loading={loading} />
                 <div className="flex flex-col gap-10">
                     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
@@ -138,12 +144,6 @@ const TempatWisata = () => {
                                             </th>
                                             <th className="px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
                                                 Average Rating
-                                            </th>
-                                            <th className="px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                                                Provinsi
-                                            </th>
-                                            <th className="px-4 py-4 font-medium text-black dark:text-white xl:pl-11">
-                                                Category Wisata
                                             </th>
                                             <th className="px-4 py-4 font-medium text-black dark:text-white">
                                                 Action
@@ -184,17 +184,6 @@ const TempatWisata = () => {
                                                         </svg>
                                                         {tw.average_rating} &nbsp;
                                                         {`(${tw.review_total})`}
-                                                    </h5>
-                                                </td>
-
-                                                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                                                    <h5 className="font-medium text-black dark:text-white">
-                                                        {tw.provinsi.nama}
-                                                    </h5>
-                                                </td>
-                                                <td className="border-b border-[#eee] px-4 py-5 pl-9 dark:border-strokedark xl:pl-11">
-                                                    <h5 className="font-medium text-black dark:text-white">
-                                                        {tw.categoryWisata.nama}
                                                     </h5>
                                                 </td>
                                                 <td className="border-b border-[#eee] px-4 py-5 dark:border-strokedark">
@@ -305,4 +294,4 @@ const TempatWisata = () => {
     );
 };
 
-export default TempatWisata;
+export default TempatWisataProvinsi;

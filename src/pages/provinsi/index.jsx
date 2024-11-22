@@ -18,6 +18,7 @@ const Provinsi = () => {
 
     const [page, setPage] = useState(0);
     const [perPage, setPerPage] = useState(10);
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -60,6 +61,8 @@ const Provinsi = () => {
     const handleOpenDialog = () => setOpenDialog(!openDialog);
 
     const handleConfirmDelete = async () => {
+        setLoading(true);
+
         try {
             await axios.delete(`admin/provinsi/${provinsiId}`);
             setProvinsi(provinsi.filter((p) => p.id !== provinsiId));
@@ -70,6 +73,8 @@ const Provinsi = () => {
             if (error.response && [401, 403].includes(error.response.status)) {
                 router.push('/provinsi');
             }
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -83,7 +88,7 @@ const Provinsi = () => {
             <SEO title={pageTitle} />
             <DefaultLayout>
                 <Breadcrumb pageName="Provinsi" />
-                <DeleteNotification open={openDialog} handleOpenDelete={handleOpenDialog} handleConfirmDelete={handleConfirmDelete} />
+                <DeleteNotification open={openDialog} handleOpenDelete={handleOpenDialog} handleConfirmDelete={handleConfirmDelete} loading={loading}/>
                 <div className="flex flex-col gap-10">
                     <div className="rounded-sm border border-stroke bg-white px-5 pb-2.5 pt-6 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
                         <div className="flex items-center justify-between mb-3">

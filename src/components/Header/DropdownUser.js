@@ -11,7 +11,7 @@ const DropdownUser = ({ user }) => {
     const router = useRouter();
 
     const logout = async () => {
-        await axios.post('logout', {});
+        await axios.post('admin/logout', {});
         router.push('/login');
     }
     return (
